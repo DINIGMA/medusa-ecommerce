@@ -3,7 +3,11 @@
     <v-row>
       <!-- Левая часть: изображение товара -->
       <v-col cols="12" md="6">
-        <v-img :src="defaultImg" height="400" contain></v-img>
+        <v-img
+          :src="currentProduct?.images[0].url"
+          height="400"
+          contain
+        ></v-img>
       </v-col>
 
       <!-- Правая часть: информация о товаре -->
@@ -35,7 +39,7 @@
 
     <!-- Блок рекомендаций -->
     <v-divider class="my-5"></v-divider>
-    <h2 class="text-center mb-5">Рекомендуемые товары</h2>
+    <h2 class="text-center mb-5">Схожие товары</h2>
     <v-row v-if="currentRecommendation">
       <v-col
         v-for="rec in currentRecommendation"
@@ -45,13 +49,39 @@
         lg="3"
       >
         <v-card class="product-card p-10">
-          <v-img :src="defaultImg" height="200" contain></v-img>
+          <v-img :src="rec?.product?.thumbnail" height="200" contain></v-img>
           <v-card-title class="text-center">{{
             rec?.product?.title
           }}</v-card-title>
           <v-card-subtitle>{{ rec?.product?.description }}</v-card-subtitle>
           <v-card-actions>
-            <v-btn :to="`/products/${rec.id}`" color="primary">Подробнее</v-btn>
+            <v-btn :to="`/products/${rec?.product?.id}`" color="primary"
+              >Подробнее</v-btn
+            >
+          </v-card-actions>
+        </v-card>
+      </v-col>
+    </v-row>
+    <v-row v-else>
+      <v-col v-for="product in 10" cols="12" sm="6" md="4" lg="3">
+        <v-skeleton-loader
+          class="mx-auto border"
+          type="card"
+        ></v-skeleton-loader>
+      </v-col>
+    </v-row>
+    <v-divider class="my-5"></v-divider>
+    <h2 class="text-center mb-5">Схожие товары</h2>
+    <v-row v-if="currentCollabRec">
+      <v-col v-for="rec in currentCollabRec" cols="12" sm="6" md="4" lg="3">
+        <v-card class="product-card p-10">
+          <v-img :src="rec?.thumbnail" height="200" contain></v-img>
+          <v-card-title class="text-center">{{ rec?.title }}</v-card-title>
+          <v-card-subtitle>{{ rec?.description }}</v-card-subtitle>
+          <v-card-actions>
+            <v-btn :to="`/products/${rec?.id}`" color="primary"
+              >Подробнее</v-btn
+            >
           </v-card-actions>
         </v-card>
       </v-col>
@@ -82,7 +112,8 @@ definePage({
 
 const productStore = useProductsStore();
 
-const { currentProduct, currentRecommendation } = storeToRefs(productStore);
+const { currentProduct, currentRecommendation, currentCollabRec } =
+  storeToRefs(productStore);
 
 interface RouteParams {
   id: string;

@@ -10,13 +10,13 @@
         lg="3"
       >
         <v-card class="product-card" :to="`/products/${product.id}`" link>
-          <v-img :src="defaultImg" height="250" cover></v-img>
+          <v-img :src="product.images[0].url" height="300" contain></v-img>
           <v-card-title>{{ product.title }}</v-card-title>
-          <v-card-subtitle>{{ product.description }} ₽</v-card-subtitle>
+          <v-card-subtitle>{{ product.description }}</v-card-subtitle>
           <v-card-actions>
             <v-btn
               color="default"
-              @click="addToCart(product)"
+              @click.prevent="addToCart(product)"
               rounded="x-large"
               class="bg-accent text-button"
             >
@@ -31,6 +31,7 @@
       class="mt-10"
       v-model="currentPage"
       :length="totalPage"
+      :total-visible="10"
     ></v-pagination>
   </v-container>
 </template>
@@ -56,14 +57,15 @@ const totalPage = computed(() => {
 });
 
 const productStore = useProductsStore();
-const { products } = storeToRefs(productStore);
+const { products, currentCollabRec } = storeToRefs(productStore);
 
 const addToCart = (product: any) => {
-  alert(`Добавлено в корзину: ${product.title}`);
+  console.log(product);
 };
 
 onMounted(async () => {
   await productStore.getProducts(limits, offset.value);
+  await productStore.getAllProducts();
 });
 
 watch(currentPage, async () => {

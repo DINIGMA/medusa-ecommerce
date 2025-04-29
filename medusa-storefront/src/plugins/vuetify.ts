@@ -14,7 +14,7 @@ import { createVuetify } from "vuetify";
 // https://vuetifyjs.com/en/introduction/why-vuetify/#feature-guides
 export default createVuetify({
   theme: {
-    defaultTheme: "light", // Устанавливаем тему по умолчанию
+    defaultTheme: localStorage.getItem("theme") || "light", // Устанавливаем тему по умолчанию
     themes: {
       light: {
         colors: {

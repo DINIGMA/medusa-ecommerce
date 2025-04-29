@@ -1,14 +1,68 @@
 import type { MedusaRequest, MedusaResponse } from "@medusajs/framework/http";
-import { myWorkflow as recommendation } from "../../../../workflows/recommendation/recommendation";
+import { myWorkflow as recommendation } from "../../../../workflows/recommendation/contentRecommendation";
+import { collaborativeFiltering } from "src/workflows/recommendation/collabRecommendations";
 
-export async function GET(req: MedusaRequest, res: MedusaResponse) {
-  const { id } = req.params;
+interface RecommendationRequest {
+  customer_id: string;
+  product_ids: string[];
+}
 
-  const { result } = await recommendation(req.scope).run({
-    input: {
-      productId: id,
-    },
-  });
+export async function POST(req: MedusaRequest, res: MedusaResponse) {
+  try {
+    const body = req.body as RecommendationRequest;
+    // Получаем данные из тела запроса
+    const { product_ids, customer_id } = body;
 
-  res.json(result);
+    console.log(product_ids);
+    console.log(body);
+    console.log(customer_id);
+
+    // Валидация входных данных
+    if (!customer_id) {
+      return res.status(400).json({
+        message: "Missing required field: customer_id",
+      });
+    }
+
+    if (!Array.isArray(product_ids)) {
+      return res.status(400).json({
+        message: "product_ids must be an array",
+      });
+    }
+
+    // Запуск workflow рекомендаций по контенту
+    const { result: contentRecommendations } = await recommendation(
+      req.scope
+    ).run({
+      input: {
+        productIds: [
+          "prod_01JSC50QG2FRKWXR26QVWEXVKS",
+          "prod_01JSC50QEZ6B9NGMX8MXQC546S",
+          "prod_01JSC50QF5HWGRWFTST8RHCD2T",
+        ],
+      },
+    });
+
+    // Запуск коллаборативной фильтрации
+    const { result: collabRecommendations } = await collaborativeFiltering(
+      req.scope
+    ).run({
+      input: { customerId: customer_id },
+    });
+
+    res.json({
+      content_recommendations: contentRecommendations,
+      collaborative_recommendations: collabRecommendations,
+    });
+  } catch (error) {
+    res.status(500).json({
+      message: error instanceof Error ? error.message : "Internal server error",
+      details:
+        process.env.NODE_ENV === "development"
+          ? error instanceof Error
+            ? error.stack
+            : undefined
+          : undefined,
+    });
+  }
 }

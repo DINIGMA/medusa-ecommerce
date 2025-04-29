@@ -29,6 +29,10 @@
       <v-icon>{{ isDark ? "mdi-weather-sunny" : "mdi-weather-night" }}</v-icon>
     </v-btn>
 
+    <v-btn icon @click="reviewStore.createReview()">
+      <v-icon>mdi-account</v-icon>
+    </v-btn>
+
     <v-btn icon v-if="token">
       <v-icon>mdi-account</v-icon>
     </v-btn>
@@ -44,8 +48,10 @@
 import { useTheme } from "vuetify";
 import { useAuthStore } from "@/stores/auth";
 import { storeToRefs } from "pinia";
+import { useReviewStore } from "@/stores/review";
 
 const authStore = useAuthStore();
+const reviewStore = useReviewStore();
 
 const { token } = storeToRefs(authStore);
 
@@ -56,6 +62,7 @@ const isDark = computed(() => theme.global.current.value.dark);
 
 const toggleTheme = () => {
   theme.global.name.value = isDark.value ? "light" : "dark";
+  localStorage.setItem("theme", isDark.value ? "dark" : "light");
 };
 </script>
 
