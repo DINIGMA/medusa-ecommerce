@@ -52,12 +52,10 @@ async function calculateSimilarities(
       normA += a ** 2; // Норма вектора target
       normB += b ** 2; // Норма вектора other
     });
-    console.log(`Вычисления ${otherUserId}`);
+
     const denominator = Math.sqrt(normA) * Math.sqrt(normB);
     let similarity = 0;
     if (denominator !== 0) {
-      console.log(denominator);
-      console.log(dotProduct);
       similarity = dotProduct / denominator;
     }
 
@@ -73,7 +71,7 @@ function calculateAverage(ratings: number[]): number {
     : 0;
 }
 
-const getCollaborativeFiltering = createStep(
+export const getCollaborativeFiltering = createStep(
   "get-collab-filtering",
   async (input: WorkflowInput, { container }) => {
     const customerModuleService = container.resolve("customer");
@@ -204,89 +202,27 @@ const getCollaborativeFiltering = createStep(
       id: recommendationIds,
     });
 
-    const reviewsUser = await reviewModuleService.listReviews({
-      customer_id: [
-        "cus_01JSPEM47YQT6K0F8H1PSW1NB3",
-        "cus_01JSPEJDNXQ5EZKDQKS07PF2Z5",
-      ],
-    });
+    // Создаем массив рекомендаций с нужной структурой
+    const formattedRecommendations = filteredPredictions
+      .map(([productId, prediction]) => {
+        // Находим соответствующий продукт
+        const product = recommendationProducts.find((p) => p.id === productId);
 
-    // console.log(reviewsUser);
+        return product
+          ? {
+              productId: productId,
+              product: product, // Полный объект продукта
+              prediction: prediction, // Предсказанный рейтинг
+            }
+          : null;
+      })
+      .filter(Boolean); // Фильтруем возможные null
 
+    // Удаляем ненужные запросы к отзывам
     return new StepResponse({
-      recommendations: recommendationProducts,
+      recommendations: formattedRecommendations,
       rec: similarities,
     });
-
-    // const targetUserRatings = userProductMatrix[input.customerId];
-
-    // const similarities: Record<string, number> = {};
-
-    // console.log(Object.keys(userProductMatrix).length);
-
-    // Object.keys(userProductMatrix).forEach((otherCustomerId, i) => {
-    //   if (otherCustomerId === input.customerId) return;
-
-    //   const commonProducts = Object.keys(targetUserRatings).filter(
-    //     (productId) => productId in userProductMatrix[otherCustomerId]
-    //   );
-
-    //   if (commonProducts.length === 0) return;
-
-    //   let dotProduct = 0;
-    //   let normA = 0;
-    //   let normB = 0;
-
-    //   commonProducts.forEach((productId) => {
-    //     const a = targetUserRatings[productId];
-    //     const b = userProductMatrix[otherCustomerId][productId];
-    //     dotProduct += a * b;
-    //     normA += a ** 2;
-    //     normB += b ** 2;
-    //   });
-
-    //   if (i === 1132180) {
-    //     console.log("cfdfdfdfdf");
-    //     console.log(Math.sqrt(normA));
-    //     console.log(Math.sqrt(normB));
-    //     console.log(dotProduct);
-    //   }
-
-    //   const similarity = dotProduct / (Math.sqrt(normA) * Math.sqrt(normB));
-    //   similarities[otherCustomerId] = similarity;
-    // });
-
-    // const targetAvg = userAverages[input.customerId] || 2.5;
-    // let numerator = 0;
-    // let denominator = 0;
-
-    // Object.entries(similarities).forEach(([otherUserId, similarity]) => {
-    //   const otherUserRating = productUserMatrix[input.productId]?.[otherUserId];
-    //   console.log(otherUserRating);
-    //   if (otherUserRating) {
-    //     const otherAvg = userAverages[otherUserId];
-    //     numerator += (otherUserRating - otherAvg) * similarity;
-    //     denominator += Math.abs(similarity);
-    //   }
-    // });
-
-    // const predictedRating =
-    //   denominator !== 0 ? targetAvg + numerator / denominator : targetAvg;
-
-    // const reviewsUser = await reviewModuleService.listReviews({
-    //   customer_id: ["cus_01JSP7M3WGWP5VBJSF80D1MRHS", ""],
-    // });
-
-    // const reviewsProduct = await reviewModuleService.listReviews({
-    //   product_id: ["prod_01JSC50QEZSPXPSKMQ4ARM7Y13"],
-    // });
-
-    // console.log(reviewsUser);
-    // console.log(reviewsProduct);
-
-    // return new StepResponse({
-    //   collabRec: similarities,
-    // });
   }
 );
 

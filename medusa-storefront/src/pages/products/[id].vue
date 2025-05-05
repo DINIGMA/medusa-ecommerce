@@ -42,7 +42,7 @@
     <h2 class="text-center mb-5">Схожие товары</h2>
     <v-row v-if="currentRecommendation">
       <v-col
-        v-for="rec in currentRecommendation"
+        v-for="rec in currentRecommendation.rec"
         cols="12"
         sm="6"
         md="4"
@@ -94,6 +94,32 @@
         ></v-skeleton-loader>
       </v-col>
     </v-row>
+    <v-divider class="my-5"></v-divider>
+    <h2 class="text-center mb-5">Гибридная модель</h2>
+    <v-row v-if="hybridRec">
+      <v-col v-for="rec in hybridRec" cols="12" sm="6" md="4" lg="3">
+        <v-card class="product-card p-10">
+          <v-img :src="rec?.product?.thumbnail" height="200" contain></v-img>
+          <v-card-title class="text-center">{{
+            rec?.product?.title
+          }}</v-card-title>
+          <v-card-subtitle>{{ rec?.product?.description }}</v-card-subtitle>
+          <v-card-actions>
+            <v-btn :to="`/products/${rec?.product?.id}`" color="primary"
+              >Подробнее</v-btn
+            >
+          </v-card-actions>
+        </v-card>
+      </v-col>
+    </v-row>
+    <v-row v-else>
+      <v-col v-for="product in 10" cols="12" sm="6" md="4" lg="3">
+        <v-skeleton-loader
+          class="mx-auto border"
+          type="card"
+        ></v-skeleton-loader>
+      </v-col>
+    </v-row>
   </v-container>
 </template>
 
@@ -101,6 +127,7 @@
 import router from "@/router";
 import { useRoute } from "vue-router";
 import { useProductsStore } from "@/stores/products";
+import { useRecommendationStore } from "@/stores/recommendation";
 import { storeToRefs } from "pinia";
 import defaultImg from "@/assets/images/default-product.png";
 
@@ -111,8 +138,9 @@ definePage({
 });
 
 const productStore = useProductsStore();
+const recommendationStore = useRecommendationStore();
 
-const { currentProduct, currentRecommendation, currentCollabRec } =
+const { currentProduct, currentRecommendation, currentCollabRec, hybridRec } =
   storeToRefs(productStore);
 
 interface RouteParams {
@@ -129,21 +157,25 @@ defineProps({
 });
 
 const addToCart = (product: object) => {
-  console.log(product);
+  console.log(recommendationStore.getProductForContentRec);
 };
 
 onMounted(() => {
   window.scrollTo({ top: 0, behavior: "smooth" });
+  recommendationStore.addViewProduct(id.value);
   Promise.all([
     productStore.getProductById(id.value),
-    productStore.getRecommendationForProducts(id.value),
+    // productStore.getRecommendationForProducts(id.value),
+    // productStore.getHybridRecommendation(),
   ]);
 });
 
 watch(id, () => {
+  window.scrollTo({ top: 0, behavior: "smooth" });
+  recommendationStore.addViewProduct(id.value);
   Promise.all([
     productStore.getProductById(id.value),
-    productStore.getRecommendationForProducts(id.value),
+    // productStore.getRecommendationForProducts(id.value),
   ]);
 });
 </script>

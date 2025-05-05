@@ -12,8 +12,8 @@
     <!-- Меню -->
     <v-spacer></v-spacer>
 
-    <v-btn>Главная</v-btn>
-    <v-btn>Каталог</v-btn>
+    <v-btn to="/">Главная</v-btn>
+    <v-btn to="category">Категории</v-btn>
     <v-btn>О нас</v-btn>
 
     <!-- Корзина -->
